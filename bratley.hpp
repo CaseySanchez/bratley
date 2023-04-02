@@ -127,13 +127,11 @@ namespace bratley
             }
         };
 
-        // `validate_t` determines whether or not a schedule is valid
-        // It does this by first checking if the task has arrived
-        // If it has arrived, it checks if the current time plus the cost is less-than-or-equal-to the deadline
-        // If it has not arrived, it checks if the arrival time plus the cost is less-than-or-equal-to the deadline
-        // It performs a logical AND while unpacking the tasks in the tuple
-        // If any one task evaluates to false then the entire schedule is invalid
-       
+        // `validate_t` is used to determine whether or not a scheduled task is valid
+        // `start` returns the start time, which is the arrival time if the task has not yet arrived, or the current time if the task has already arrived
+        // `finish` returns the finish time, which is the sum of the start time and the cost
+        // `validate` returns true if the finish time is less-than-or-equal-to the deadline and returns false otherwise
+
         template <uint32_t Time, typename Task>
         struct validate_t
         {
@@ -209,14 +207,12 @@ namespace bratley
             using type = std::tuple<>;
         };
 
-        // Specialization for the n-tuple case
         template <typename TaskHead, typename... TaskTail>
         struct rotate_t<std::tuple<TaskHead, TaskTail...>>
         {
             using type = std::tuple<TaskTail..., TaskHead>;
         };
 
-        // Specialization for the 1-tuple case
         template <typename TaskHead>
         struct rotate_t<std::tuple<TaskHead>>
         {
@@ -241,6 +237,7 @@ namespace bratley
         // `schedule_t` generates the branches of the schedule tree as a tuple of tuples
         // If a branch is invalid the tuple will stop growing where the branch becomes invalid
         // The only valid branches in the tuple will be of the same size as the number of tasks to be scheduled
+        // Invalid branches must be pruned using `prune_t`
 
         template <uint32_t Time, uint32_t Index, typename Tuple = void>
         struct schedule_t
@@ -288,7 +285,7 @@ namespace bratley
             using type = std::tuple<std::tuple<task_validated>>;
         };
 
-        // `prune_t` prunes branches that do not contain the total number of tasks
+        // `prune_t` prunes incomplete branches (branches that do not contain the total number of tasks)
 
         template <uint32_t Size, typename Schedules>
         struct prune_t;
