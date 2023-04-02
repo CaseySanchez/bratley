@@ -5,6 +5,13 @@ An example of the schedule tree generated using Bratley's scheduling algorithm c
 
 ![](bratley_schedule_tree.png)
 
+In the above tree the feasible schedule shown is `S = { J_4, J_2, J_3, J_1 }` because:
+
+- `J_4` arrives at `t=0`, starts at `t=0`, finishes at `t=2`, and its finish time is less-than-or-equal-to its deadline at `t=4`
+- `J_2` arrives at `t=1`, starts at `t=2`, finishes at `t=3`, and its finish time is less-than-or-equal-to its deadline at `t=5`
+- `J_3` arrives at `t=1`, starts at `t=3`, finishes at `t=5`, and its finish time is less-than-or-equal-to its deadline at `t=6`
+- `J_1` arrives at `t=4`, starts at `t=5`, finishes at `t=7`, and its finish time is less-than-or-equal-to its deadline at `t=7`
+
 Build instructions:
 ```
 cd bratley
