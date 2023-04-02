@@ -249,7 +249,7 @@ namespace bratley
         struct schedule_t<Time, Index, std::tuple<TaskHead, TaskTail...>>
         {
             using validator = validate_t<Time, TaskHead>;
-            using task_validated = task_schedule_t<validator::start(), validator::finish(), TaskHead>;
+            using task_schedule = task_schedule_t<validator::start(), validator::finish(), TaskHead>;
 
             using tasks = std::tuple<TaskHead, TaskTail...>;
             using rotated = typename rotate_t<tasks>::type;
@@ -261,7 +261,7 @@ namespace bratley
                 validator::validate(),
                 typename join_t<
                     typename prepend_t<
-                        std::tuple<task_validated>, 
+                        std::tuple<task_schedule>, 
                         future_branches
                     >::type,
                     present_branches
@@ -280,9 +280,9 @@ namespace bratley
         struct schedule_t<Time, 0, std::tuple<TaskHead>>
         {
             using validator = validate_t<Time, TaskHead>;
-            using task_validated = task_schedule_t<validator::start(), validator::finish(), TaskHead>;
+            using task_schedule = task_schedule_t<validator::start(), validator::finish(), TaskHead>;
 
-            using type = std::tuple<std::tuple<task_validated>>;
+            using type = std::tuple<std::tuple<task_schedule>>;
         };
 
         // `prune_t` prunes incomplete branches (branches that do not contain the total number of tasks)
