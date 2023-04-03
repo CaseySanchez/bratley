@@ -23,4 +23,4 @@ make
 
 Live demo on the Godbolt Compiler Explorer:
 
-https://godbolt.org/z/P4G9fjnvh
+https://godbolt.org/z/GoaT5PzdP
