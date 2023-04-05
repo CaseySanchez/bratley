@@ -9,3 +9,5 @@ add_executable(bratley main.cpp)
 target_link_libraries(bratley Threads::Threads)
 
 set_property(TARGET bratley PROPERTY CXX_STANDARD 20)
+
+set_property(TARGET bratley PROPERTY RULE_LAUNCH_COMPILE "time -v")

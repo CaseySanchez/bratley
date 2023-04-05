@@ -238,27 +238,29 @@ namespace bratley
         // If a branch is invalid the tuple will stop growing where the branch becomes invalid
         // The only valid branches in the tuple will be of the same size as the number of tasks to be scheduled
         // Invalid branches must be pruned using `prune_t`
+        // The `Valid` template parameter is used to avoid an `O(n!)` template instantiation complexity with template specializations
+        // The only constraint is the "template instantiation depth" compilation flag
 
-        template <uint32_t Time, uint32_t Index, typename Tuple = void>
+        template <bool Valid, uint32_t Time, uint32_t Index, typename Tuple = void>
         struct schedule_t
         {
             using type = std::tuple<>;
         };
 
         template <uint32_t Time, uint32_t Index, typename TaskHead, typename... TaskTail>
-        struct schedule_t<Time, Index, std::tuple<TaskHead, TaskTail...>>
+        struct schedule_t<true, Time, Index, std::tuple<TaskHead, TaskTail...>>
         {
-            using validator = validate_t<Time, TaskHead>;
-            using task_schedule = task_schedule_t<validator::start(), validator::finish(), TaskHead>;
+            using validate = validate_t<Time, TaskHead>;
+            using task_schedule = task_schedule_t<validate::start(), validate::finish(), TaskHead>;
 
             using tasks = std::tuple<TaskHead, TaskTail...>;
             using rotated = typename rotate_t<tasks>::type;
 
-            using future_branches = typename schedule_t<validator::finish(), sizeof...(TaskTail), std::tuple<TaskTail...>>::type;
-            using present_branches = typename schedule_t<Time, Index - 1, rotated>::type;
+            using future_branches = typename schedule_t<validate::validate(), validate::finish(), sizeof...(TaskTail), std::tuple<TaskTail...>>::type;
+            using present_branches = typename schedule_t<true, Time, Index - 1, rotated>::type;
 
             using type = std::conditional_t<
-                validator::validate(),
+                validate::validate(),
                 typename join_t<
                     typename prepend_t<
                         std::tuple<task_schedule>, 
@@ -271,16 +273,16 @@ namespace bratley
         };
 
         template <uint32_t Time, typename TaskHead, typename... TaskTail>
-        struct schedule_t<Time, 0, std::tuple<TaskHead, TaskTail...>>
+        struct schedule_t<true, Time, 0, std::tuple<TaskHead, TaskTail...>>
         {
             using type = std::tuple<>;
         };
 
         template <uint32_t Time, typename TaskHead>
-        struct schedule_t<Time, 0, std::tuple<TaskHead>>
+        struct schedule_t<true, Time, 0, std::tuple<TaskHead>>
         {
-            using validator = validate_t<Time, TaskHead>;
-            using task_schedule = task_schedule_t<validator::start(), validator::finish(), TaskHead>;
+            using validate = validate_t<Time, TaskHead>;
+            using task_schedule = task_schedule_t<validate::start(), validate::finish(), TaskHead>;
 
             using type = std::tuple<std::tuple<task_schedule>>;
         };
@@ -307,7 +309,7 @@ namespace bratley
     template <typename... Tasks>
     static constexpr auto schedule()
     {
-        using schedule = typename detail::schedule_t<0, sizeof...(Tasks), std::tuple<Tasks...>>::type;
+        using schedule = typename detail::schedule_t<true, 0, sizeof...(Tasks), std::tuple<Tasks...>>::type;
         using prune = typename detail::prune_t<sizeof...(Tasks), schedule>::type;
 
         return prune { };
